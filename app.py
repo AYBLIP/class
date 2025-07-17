@@ -1,72 +1,52 @@
 import streamlit as st
 import tensorflow as tf
-from tensorflow.keras import layers, models
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
 
 # Judul aplikasi
 st.title("Model Deploy dengan Pilihan Optimizer (Adam, SGD, RMSprop)")
 
-# Pilihan optimizer dari pengguna
-optimizer_choice = st.selectbox(
+# Pilihan optimizer
+optimizer_option = st.selectbox(
     "Pilih optimizer:",
     ("Adam", "SGD", "RMSprop")
 )
 
+# Parameter learning rate
+learning_rate = st.slider("Learning Rate", 0.0001, 0.01, 0.001, step=0.0001)
+
 # Fungsi untuk mendapatkan optimizer sesuai pilihan
-def get_optimizer(name):
+def get_optimizer(name, lr):
     if name == "Adam":
-        return tf.keras.optimizers.Adam()
+        return Adam(learning_rate=lr)
     elif name == "SGD":
-        return tf.keras.optimizers.SGD()
+        return SGD(learning_rate=lr)
     elif name == "RMSprop":
-        return tf.keras.optimizers.RMSprop()
+        return RMSprop(learning_rate=lr)
 
-# Tampilkan ketika tombol ditekan
-if st.button("Latih Model"):
-    st.write(f"Melatih model dengan optimizer: {optimizer_choice}")
+# Tombol untuk memulai training
+if st.button("Train Model"):
+    with st.spinner("Training model..."):
+        # Membuat data dummy
+        import numpy as np
+        X = np.random.rand(1000, 10)
+        y = (np.sum(X, axis=1) > 5).astype(int)
 
-    # Load dataset MNIST
-    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+        # Membuat model sederhana
+        model = Sequential([
+            Dense(16, activation='relu', input_shape=(10,)),
+            Dense(1, activation='sigmoid')
+        ])
 
-    # Normalisasi data
-    x_train = x_train.astype("float32") / 255.0
-    x_test = x_test.astype("float32") / 255.0
+        # Kompilasi model dengan optimizer yang dipilih
+        optimizer = get_optimizer(optimizer_option, learning_rate)
+        model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
 
-    # Membuat model sederhana
-    model = models.Sequential([
-        layers.Flatten(input_shape=(28, 28)),
-        layers.Dense(128, activation='relu'),
-        layers.Dense(10, activation='softmax')
-    ])
+        # Melatih model
+        history = model.fit(X, y, epochs=10, batch_size=32, verbose=0)
 
-    # Compile model dengan optimizer yang dipilih
-    optimizer = get_optimizer(optimizer_choice)
-    model.compile(
-        optimizer=optimizer,
-        loss='sparse_categorical_crossentropy',
-        metrics=['accuracy']
-    )
-
-    # Melatih model
-    history = model.fit(
-        x_train, y_train,
-        epochs=5,
-        batch_size=64,
-        validation_split=0.2,
-        verbose=1
-    )
-
-    # Evaluasi model
-    loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
-    st.write(f"Akurasi pada data test: {accuracy*100:.2f}%")
-    
-    # Optional: tampilkan grafik training
-    import matplotlib.pyplot as plt
-
-    # Plot akurasi
-    fig, ax = plt.subplots()
-    ax.plot(history.history['accuracy'], label='Training Accuracy')
-    ax.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('Akurasi')
-    ax.legend()
-    st.pyplot(fig)
+        # Menampilkan hasil training
+        st.success("Training selesai!")
+        st.write("Loss terakhir:", history.history['loss'][-1])
+        st.write("Akurasi terakhir:", history.history['accuracy'][-1])
