@@ -18,7 +18,7 @@ st.title("Klasifikasi Kue dengan Streamlit")
 
 # Pilihan optimizer
 optimizer_options = ['Adam', 'SGD', 'RMSprop']
-optimizer_choice = st.selectbox("Pilih optimizer model yang ingin digunakan", optimizer_options)
+optimizer_choice = st.selectbox("Optimizer", optimizer_options)
 
 # Tentukan path model secara dinamis
 model_path = f'model_{optimizer_choice}.h5'
