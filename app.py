@@ -3,10 +3,18 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 from tensorflow.keras.applications.efficientnet import preprocess_input
+from tensorflow.keras.utils import get_custom_objects
 
-# Muat model yang sudah dilatih (pastikan model ini sudah dilatih dan menyimpan arsitektur + bobot)
+# Daftarkan fungsi swish
+def swish(x):
+    return x * tf.keras.backend.sigmoid(x)
+
+get_custom_objects().update({'swish': swish})
+
+# Muat model
 model = tf.keras.models.load_model('model_Adam.h5')
 
+# ... kode selanjutnya tetap sama ...
 # Daftar label kelas
 kelas = [
     'Kue Coklat',
