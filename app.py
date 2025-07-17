@@ -11,8 +11,15 @@ labels = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H'
 
 # Fungsi preprocessing gambar
 def preprocess_image(image):
-    size = (224, 224)  # Sesuaikan dengan input model
+    size = (224, 224)
     image = image.resize(size)
+
+    # Pastikan gambar dalam mode RGB
+    if image.mode == 'RGBA':
+        image = image.convert('RGB')
+    elif image.mode != 'RGB':
+        image = image.convert('RGB')
+
     image_array = np.array(image) / 255.0  # normalisasi
     image_array = np.expand_dims(image_array, axis=0)
     return image_array
