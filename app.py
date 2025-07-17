@@ -30,6 +30,7 @@ optimizer_choice = st.selectbox(
 )
 
 # Memuat model sesuai pilihan optimizer
+model = None
 model_path = f'model_{optimizer_choice}.h5'
 try:
     model = tf.keras.models.load_model(model_path)
