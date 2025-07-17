@@ -14,7 +14,7 @@ class FixedDropout(tf.keras.layers.Dropout):
     def call(self, inputs, training=None):
         return super().call(inputs, training=True)
 
-st.title("Klasifikasi Kue dengan Streamlit")
+st.title("Klasifikasi Kue")
 
 # Pilihan optimizer
 optimizer_options = ['Adam', 'SGD', 'RMSprop']
