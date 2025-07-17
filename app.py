@@ -12,18 +12,25 @@ def swish(x):
 @register_keras_serializable()
 class FixedDropout(tf.keras.layers.Dropout):
     def call(self, inputs, training=None):
+        # Implementasi khusus jika diperlukan
         return super().call(inputs, training=True)
 
-# Daftar optimizer yang bisa dipilih
-optimizer_options = ['adam', 'sgd', 'rmsprop']
-selected_optimizer = st.selectbox("Pilih optimizer untuk pelatihan ulang model (jika perlu)", optimizer_options)
+# Pilihan optimizer
+optimizer_options = ['Adam', 'SGD', 'RMSprop']
+optimizer_choice = st.selectbox("Pilih optimizer model yang ingin digunakan", optimizer_options)
 
-# Jika ingin latihan ulang model, tambahkan logika training di sini
-# (Opsional, tergantung kebutuhanmu)
+# Tentukan path model berdasarkan optimizer yang dipilih
+model_paths = {
+    'Adam': 'model_adam.h5',
+    'SGD': 'model_sgd.h5',
+    'RMSprop': 'model_rmsprop.h5'
+}
+
+model_path = model_paths[optimizer_choice]
 
 # Muat model dengan custom_objects
 model = tf.keras.models.load_model(
-    'path_to_your_model.h5',
+    model_path,
     custom_objects={
         'FixedDropout': FixedDropout,
         'swish': swish
@@ -31,7 +38,7 @@ model = tf.keras.models.load_model(
 )
 
 # Daftar kelas
-kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
+kelas = ['Kue Dadar Gulung', 'Kue Kastengel', 'Kue Klepon', 'Kue Lapis', 'Kue lumpur', 'Kue Putri Salju', 'Kue Risoles', 'Kue Serabi']
 
 st.title("Klasifikasi Kue dengan Streamlit")
 
