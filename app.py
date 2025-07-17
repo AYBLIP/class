@@ -7,7 +7,7 @@ from tensorflow.keras.models import load_model
 # Muat model yang sudah disimpan
 import os
 
-model_path = 'final_model_Adam.h5'
+model_path = 'snake_pred1.h5'
 if not os.path.exists(model_path):
     raise FileNotFoundError(f"Model file not found at {model_path}")
 model = load_model(model_path) 
