@@ -3,10 +3,16 @@ from tensorflow.keras.models import load_model
 import numpy as np
 from PIL import Image
 from tensorflow.keras.applications.efficientnet import preprocess_input
+from tensorflow.keras.utils import register_keras_serializable
+
+# Daftarkan fungsi swish agar bisa dikenali saat load
+@register_keras_serializable()
+def swish(x):
+    return x * tf.nn.sigmoid(x)
 
 @st.cache(allow_output_mutation=True)
 def load_model_keras():
-    return load_model('final_model_Adam.h5')  # ganti sesuai path SavedModel Anda
+    return load_model('final_model_Adam.h5')  # ganti path sesuai model Anda
 
 model = load_model_keras()
 
