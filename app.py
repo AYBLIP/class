@@ -10,7 +10,7 @@ import os
 from PIL import Image
 
 # URL model weights di GitHub (pastikan file publik)
-MODEL_WEIGHTS_URL = 'https://raw.githubusercontent.com/username/repository/main/model_weights.h5'
+MODEL_WEIGHTS_URL = 'model_Adam.h5'
 
 @st.cache(allow_output_mutation=True)
 def load_model_from_github():
