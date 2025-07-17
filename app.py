@@ -4,7 +4,7 @@ from tensorflow.keras.utils import register_keras_serializable
 from tensorflow.keras.preprocessing import image
 import numpy as np
 
-# Definisikan dan daftarkan fungsi aktivasi dan lapisan kustom jika diperlukan
+# Definisikan dan daftarkan fungsi aktivasi dan lapisan kustom
 @register_keras_serializable()
 def swish(x):
     return x * tf.nn.sigmoid(x)
@@ -14,53 +14,43 @@ class FixedDropout(tf.keras.layers.Dropout):
     def call(self, inputs, training=None):
         return super().call(inputs, training=True)
 
-# Fungsi untuk membangun dan melatih model (contoh)
-def build_and_train_model(optimizer_name):
-    # Buat model sederhana sebagai contoh
-    model = tf.keras.Sequential([
-        tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(224, 224, 3)),
-        FixedDropout(0.5),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(8, activation='softmax')
-    ])
+# Daftar optimizer yang bisa dipilih
+optimizer_options = ['adam', 'sgd', 'rmsprop']
+selected_optimizer = st.selectbox("Pilih optimizer untuk pelatihan ulang model (jika perlu)", optimizer_options)
 
-    # Pilih optimizer berdasarkan input pengguna
-    if optimizer_name == 'adam':
-        optimizer = tf.keras.optimizers.Adam()
-    elif optimizer_name == 'sgd':
-        optimizer = tf.keras.optimizers.SGD()
-    elif optimizer_name == 'rmsprop':
-        optimizer = tf.keras.optimizers.RMSprop()
-    else:
-        optimizer = tf.keras.optimizers.Adam()  # default
+# Jika ingin latihan ulang model, tambahkan logika training di sini
+# (Opsional, tergantung kebutuhanmu)
 
-    # Kompilasi model
-    model.compile(optimizer=optimizer,
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
-    # Data dummy untuk pelatihan (sebagai contoh)
-    # Ganti dengan data nyata jika diperlukan
-    x_train = np.random.rand(100, 224, 224, 3)
-    y_train = np.random.randint(0, 8, 100)
-
-    # Latih model (sebagai contoh)
-    model.fit(x_train, y_train, epochs=1, verbose=0)
-    return model
-
-# Streamlit UI
-st.title("Pelatihan Model dengan Pilihan Optimizer")
-
-# Pilihan optimizer
-optimizer_option = st.selectbox(
-    "Pilih optimizer yang ingin digunakan:",
-    ("adam", "sgd", "rmsprop")
+# Muat model dengan custom_objects
+model = tf.keras.models.load_model(
+    'path_to_your_model.h5',
+    custom_objects={
+        'FixedDropout': FixedDropout,
+        'swish': swish
+    }
 )
 
-# Tombol untuk melatih
-if st.button("Latih Model"):
-    with st.spinner(f"Melatih dengan optimizer {optimizer_option}..."):
-        model = build_and_train_model(optimizer_option)
-    st.success("Model telah dilatih!")
+# Daftar kelas
+kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
 
-# Jika ingin memuat model dan melakukan prediksi
-# (kode sebelumnya tetap sama, gunakan model yang sudah dilatih)
+st.title("Klasifikasi Kue dengan Streamlit")
+
+uploaded_file = st.file_uploader("Unggah gambar kue Anda", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+    # Baca gambar
+    img = image.load_img(uploaded_file, target_size=(224, 224))
+    st.image(img, caption='Gambar yang diunggah', use_column_width=True)
+
+    # Pra-pemrosesan gambar
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0) / 255.0
+
+    # Prediksi
+    pred = model.predict(img_array)
+    pred_kelas = np.argmax(pred, axis=1)[0]
+    kelas_terpilih = kelas[pred_kelas]
+    confidence = np.max(pred) * 100
+
+    st.write(f"Prediksi: **{kelas_terpilih}**")
+    st.write(f"Kepercayaan: {confidence:.2f}%")
