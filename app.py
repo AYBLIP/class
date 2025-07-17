@@ -1,52 +1,68 @@
 import streamlit as st
-from PIL import Image
-import numpy as np
 import tensorflow as tf
+from tensorflow.keras.applications import EfficientNetB0
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.models import load_model
+import numpy as np
+import requests
+import tempfile
+import os
+from PIL import Image
 
-# Daftar kelas
-labels = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Lumpur', 'Kue F', 'Kue G', 'Kue H']
+# URL model weights di GitHub (pastikan file publik)
+MODEL_WEIGHTS_URL = 'https://raw.githubusercontent.com/username/repository/main/model_weights.h5'
 
-def preprocess_image(image):
-    size = (224, 224)
-    image = image.resize(size)
-    if image.mode != 'RGB':
-        image = image.convert('RGB')
-    image_array = np.array(image) / 255.0
-    return np.expand_dims(image_array, axis=0)
+@st.cache(allow_output_mutation=True)
+def load_model_from_github():
+    # Unduh bobot dari GitHub
+    response = requests.get(MODEL_WEIGHTS_URL)
+    temp_dir = tempfile.mkdtemp()
+    weights_path = os.path.join(temp_dir, 'model_weights.h5')
+    with open(weights_path, 'wb') as f:
+        f.write(response.content)
+    # Bangun model arsitektur
+    base_model = EfficientNetB0(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+    x = GlobalAveragePooling2D()(base_model.output)
+    outputs = Dense(10, activation='softmax')(x)
+    model = tf.keras.models.Model(inputs=base_model.input, outputs=outputs)
+    # Muat bobot
+    model.load_weights(weights_path)
+    return model
 
-st.title("Klasifikasi Kue - Deteksi 8 Kelas")
+st.title("Deploy EfficientNetB0 dengan Pilihan Optimizer dan Model dari GitHub")
 
-optimizer_choice = st.selectbox(
-    "Pilih optimizer yang digunakan saat pelatihan model:",
-    ("Adam", "SGD", "RMSprop")
-)
+# Pilihan optimizer
+optimizer_choice = st.selectbox('Pilih Optimizer', ['Adam', 'SGD', 'RMSprop'])
 
-# Inisialisasi model sebagai None
-model = None
+# Tombol untuk memuat model
+if st.button('Muat Model'):
+    model = load_model_from_github()
+    st.success("Model berhasil dimuat dari GitHub!")
 
-# Coba muat model sesuai pilihan optimizer
-model_path = f'model_{optimizer_choice}.h5'
-try:
-    model = tf.keras.models.load_model(model_path)
-    st.success(f"Model {optimizer_choice} berhasil dimuat.")
-except Exception as e:
-    st.error(f"Gagal memuat model dari {model_path}. Pesan: {str(e)}")
+    # Tampilkan ringkasan model
+    st.subheader("Ringkasan Model")
+    model_summary = []
+    model.summary(print_fn=lambda x: model_summary.append(x))
+    st.text("\n".join(model_summary))
 
-uploaded_file = st.file_uploader("Upload gambar kue", type=["jpg", "jpeg", "png"])
+    # Simulasi prediksi
+    st.subheader("Unggah Gambar untuk Prediksi")
+    uploaded_file = st.file_uploader("Pilih gambar (JPEG/PNG)", type=["jpg", "jpeg", "png"])
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file).convert('RGB')
+        image_resized = image.resize((224, 224))
+        st.image(image, caption='Gambar Input', use_column_width=True)
 
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption='Gambar yang diupload', use_column_width=True)
+        img_array = np.array(image_resized) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
 
-    if st.button('Prediksi'):
-        if model is not None:
-            processed_image = preprocess_image(image)
-            prediction = model.predict(processed_image)
-            predicted_index = np.argmax(prediction)
-            predicted_label = labels[predicted_index]
-            confidence = np.max(prediction)
-
-            st.write(f'Kelas Prediksi: **{predicted_label}**')
-            st.write(f'Probabilitas: {confidence:.2f}')
-        else:
-            st.error("Model belum berhasil dimuat. Periksa file model dan coba lagi.")
+        # Prediksi
+        predictions = model.predict(img_array)
+        class_labels = [f'Kelas {i}' for i in range(10)]
+        top_idx = np.argmax(predictions[0])
+        top_prob = predictions[0][top_idx]
+        st.write(f"Prediksi Terbaik: {class_labels[top_idx]} dengan probabilitas {top_prob:.2f}")
+        for i, label in enumerate(class_labels):
+            st.write(f"{label}: {predictions[0][i]:.2f}")
+else:
+    st.info("Tekan tombol 'Muat Model' untuk memulai.")
