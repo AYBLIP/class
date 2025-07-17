@@ -22,6 +22,8 @@ optimizer_choice = st.selectbox("Pilih optimizer model yang ingin digunakan", op
 # Tentukan path model secara dinamis
 model_path = f'model_{optimizer_choice}.h5'
 
+st.title("Klasifikasi Kue dengan Streamlit")
+
 # Muat model dengan penanganan error
 try:
     model = tf.keras.models.load_model(
@@ -38,7 +40,6 @@ except:
 # Daftar kelas
 kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
 
-st.title("Klasifikasi Kue dengan Streamlit")
 
 uploaded_file = st.file_uploader("Unggah gambar kue Anda", type=["jpg", "jpeg", "png"])
 
