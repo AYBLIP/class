@@ -40,8 +40,7 @@ except:
 # Daftar kelas
 kelas = ['Kue Dadar Gulung', 'Kue Kastengel', 'Kue Klepon', 'Kue Lapis', 'Kue Lumpur', 'Kue Putri Salju', 'Kue Risoles', 'Kue Serabi']
 
-
-uploaded_files = st.file_uploader("Unggah gambar kue Anda", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+uploaded_file = st.file_uploader("Unggah gambar kue Anda", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
 if uploaded_file is not None:
     # Baca gambar
