@@ -1,52 +1,32 @@
 import streamlit as st
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.models import load_model
+import numpy as np
 
-# Judul aplikasi
-st.title("Model Deploy dengan Pilihan Optimizer (Adam, SGD, RMSprop)")
+st.title("Deploy Model dengan Pilihan Optimizer dan File H5")
+
+# Upload file model .h5
+model_file = st.file_uploader("Upload Model .h5", type=["h5"])
 
 # Pilihan optimizer
-optimizer_option = st.selectbox(
+optimizer = st.selectbox(
     "Pilih optimizer:",
-    ("Adam", "SGD", "RMSprop")
+    ("Adam", "SGD", "RMSProp")
 )
 
-# Parameter learning rate
-learning_rate = st.slider("Learning Rate", 0.0001, 0.01, 0.001, step=0.0001)
+if model_file is not None:
+    # Load model
+    model = load_model(model_file)
+    st.success("Model berhasil dimuat!")
 
-# Fungsi untuk mendapatkan optimizer sesuai pilihan
-def get_optimizer(name, lr):
-    if name == "Adam":
-        return Adam(learning_rate=lr)
-    elif name == "SGD":
-        return SGD(learning_rate=lr)
-    elif name == "RMSprop":
-        return RMSprop(learning_rate=lr)
+    # Input fitur untuk prediksi
+    input_feature = st.number_input("Masukkan nilai fitur untuk prediksi", value=0.0)
 
-# Tombol untuk memulai training
-if st.button("Train Model"):
-    with st.spinner("Training model..."):
-        # Membuat data dummy
-        import numpy as np
-        X = np.random.rand(1000, 10)
-        y = (np.sum(X, axis=1) > 5).astype(int)
-
-        # Membuat model sederhana
-        model = Sequential([
-            Dense(16, activation='relu', input_shape=(10,)),
-            Dense(1, activation='sigmoid')
-        ])
-
-        # Kompilasi model dengan optimizer yang dipilih
-        optimizer = get_optimizer(optimizer_option, learning_rate)
-        model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
-
-        # Melatih model
-        history = model.fit(X, y, epochs=10, batch_size=32, verbose=0)
-
-        # Menampilkan hasil training
-        st.success("Training selesai!")
-        st.write("Loss terakhir:", history.history['loss'][-1])
-        st.write("Akurasi terakhir:", history.history['accuracy'][-1])
+    # Lakukan prediksi
+    if st.button("Prediksi"):
+        # Pastikan input dalam bentuk array
+        input_array = np.array([[input_feature]])
+        # Jika model membutuhkan proses tertentu sebelum prediksi, lakukan di sini
+        pred = model.predict(input_array)
+        st.write(f"Hasil prediksi: {pred[0][0]}")
+else:
+    st.info("Silakan upload file model .h5 terlebih dahulu.")
