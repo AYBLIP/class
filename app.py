@@ -14,6 +14,7 @@ class FixedDropout(tf.keras.layers.Dropout):
     def call(self, inputs, training=None):
         # Implementasi khusus jika diperlukan
         return super().call(inputs, training=True)
+st.title("Klasifikasi Kue dengan Streamlit")
 
 # Pilihan optimizer
 optimizer_options = ['Adam', 'SGD', 'RMSprop']
@@ -22,7 +23,6 @@ optimizer_choice = st.selectbox("Pilih optimizer model yang ingin digunakan", op
 # Tentukan path model secara dinamis
 model_path = f'model_{optimizer_choice}.h5'
 
-st.title("Klasifikasi Kue dengan Streamlit")
 
 # Muat model dengan penanganan error
 try:
