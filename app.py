@@ -37,7 +37,7 @@ if uploaded_files:
         # Buka gambar asli
         img = Image.open(uploaded_file)
         # Resize agar lebih kecil
-        max_width = 150
+        max_width = 10
         aspect_ratio = img.height / img.width
         new_width = max_width
         new_height = int(max_width * aspect_ratio)
