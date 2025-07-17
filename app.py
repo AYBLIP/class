@@ -8,9 +8,7 @@ import os
 # Load model yang sudah dilatih
 @st.cache(allow_output_mutation=True)
 def load_models():
-    model_adam = load_model('model_Adam.h5')
-    model_sgd = load_model('model_SGD.h5')
-    model_rmsprop = load_model('model_RMSprop.h5')
+    model_adam = load_model('model_klasifikasi_kue.h5')
     return {
         'Adam': model_adam,
         'SGD': model_sgd,
@@ -23,7 +21,7 @@ model_dict = load_models()
 st.title('Klasifikasi Kue Indonesia')
 
 # Pilih optimizer yang ingin digunakan
-optimizer_choice = st.selectbox('Pilih optimizer untuk prediksi:', ['Adam', 'SGD', 'RMSprop'])
+optimizer_choice = st.selectbox('Pilih optimizer untuk prediksi:', ['Adam'])
 
 # Upload gambar
 uploaded_file = st.file_uploader("Unggah gambar kue", type=["jpg", "jpeg", "png"])
