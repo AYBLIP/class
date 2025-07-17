@@ -14,7 +14,7 @@ class FixedDropout(tf.keras.layers.Dropout):
     def call(self, inputs, training=None):
         return super().call(inputs, training=True)
 
-st.title("Klasifikasi Kue")
+st.title("Klasifikasi Kue dengan Streamlit")
 
 # Pilihan optimizer
 optimizer_options = ['Adam', 'SGD', 'RMSprop']
@@ -47,7 +47,8 @@ if uploaded_files:
     for uploaded_file in uploaded_files:
         # Baca gambar
         img = image.load_img(uploaded_file, target_size=(224, 224))
-        st.image(img, caption=uploaded_file.name, use_container_width=True)
+        # Tampilkan gambar kecil (misalnya lebar 150px)
+        st.image(img, caption=uploaded_file.name, width=150)
 
         # Pra-pemrosesan gambar
         img_array = image.img_to_array(img)
