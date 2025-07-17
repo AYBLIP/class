@@ -1,45 +1,46 @@
 import streamlit as st
-import tensorflow as tf
-import numpy as np
+from tensorflow.keras.applications import EfficientNetB0
 from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.efficientnet import preprocess_input, decode_predictions
 from tensorflow.keras.models import load_model
+import numpy as np
+from PIL import Image
 
-# Muat model yang sudah disimpan
-import os
+# Load model (pastikan model sudah dilatih dan disimpan sebagai 'model.h5')
+@st.cache(allow_output_mutation=True)
+def load_model_keras():
+    model = load_model('final_model_Adam.h5')
+    return model
 
-model_path = 'snake_pred1.h5'
-if not os.path.exists(model_path):
-    raise FileNotFoundError(f"Model file not found at {model_path}")
-model = load_model(model_path) 
+model = load_model_keras()
 
-# Daftar kelas yang digunakan selama pelatihan
-# Pastikan sesuai dengan class_indices dari data generator Anda
-class_labels = ['kue1', 'kue2', 'kue3', 'kue4', 'kue5', 'kue6', 'kue7', 'kue8']
+# Daftar kelas (sesuaikan dengan kelas yang Anda miliki)
+kelas = ['Kue 1', 'Kue 2', 'Kue 3', 'Kue 4', 'Kue 5', 'Kue 6', 'Kue 7', 'Kue 8']
 
-# Fungsi preprocess gambar
-def preprocess_image(img):
-    img = img.resize((224, 224))
-    img_array = np.array(img) / 255.0
-    return np.expand_dims(img_array, axis=0)
-
-# Judul aplikasi
-st.title('Aplikasi Klasifikasi Citra Digital')
+st.title("Klasifikasi Gambar Kue dengan EfficientNetB0")
+st.write("Upload gambar kue Anda dan model akan memprediksi kelasnya.")
 
 # Upload gambar
-uploaded_file = st.file_uploader("Upload gambar untuk diklasifikasi", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Pilih gambar kue...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Baca gambar
-    img = image.load_img(uploaded_file, target_size=(224, 224))
+    # Membaca dan menampilkan gambar
+    img = Image.open(uploaded_file)
     st.image(img, caption='Gambar yang diunggah', use_column_width=True)
 
-    # Proses prediksi
-    img_array = preprocess_image(img)
-    predictions = model.predict(img_array)
-    pred_idx = np.argmax(predictions[0])
-    pred_label = class_labels[pred_idx]
-    confidence = predictions[0][pred_idx]
+    # Preprocessing gambar
+    img_resized = img.resize((224, 224))
+    img_array = np.array(img_resized)
+    img_array = preprocess_input(img_array)
+    img_array = np.expand_dims(img_array, axis=0)  # Tambah batch dimension
+
+    # Prediksi
+    pred = model.predict(img_array)
+    pred_prob = pred[0]
+    pred_idx = np.argmax(pred_prob)
+    pred_label = kelas[pred_idx]
+    pred_confidence = pred_prob[pred_idx]
 
     # Tampilkan hasil prediksi
     st.write(f"Prediksi: **{pred_label}**")
-    st.write(f"Kepercayaan: {confidence:.2%}")
+    st.write(f"Kepercayaan: {pred_confidence*100:.2f}%")
