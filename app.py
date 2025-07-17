@@ -19,26 +19,24 @@ class FixedDropout(tf.keras.layers.Dropout):
 optimizer_options = ['Adam', 'SGD', 'RMSprop']
 optimizer_choice = st.selectbox("Pilih optimizer model yang ingin digunakan", optimizer_options)
 
-# Tentukan path model berdasarkan optimizer yang dipilih
-model_paths = {
-    'Adam': 'model_Adam.h5',
-    'SGD': 'model_SGD.h5',
-    'RMSprop': 'model_RMSprop.h5'
-}
+# Tentukan path model secara dinamis
+model_path = f'model_{optimizer_choice.lower()}.h5'
 
-model_path = model_paths[optimizer_choice]
-
-# Muat model dengan custom_objects
-model = tf.keras.models.load_model(
-    model_path,
-    custom_objects={
-        'FixedDropout': FixedDropout,
-        'swish': swish
-    }
-)
+# Muat model dengan penanganan error
+try:
+    model = tf.keras.models.load_model(
+        model_path,
+        custom_objects={
+            'FixedDropout': FixedDropout,
+            'swish': swish
+        }
+    )
+    st.success(f"Model {optimizer_choice} berhasil dimuat.")
+except:
+    st.error(f"Gagal memuat model dari {model_path}. Pastikan file model tersedia.")
 
 # Daftar kelas
-kelas = ['Kue Dadar Gulung', 'Kue Kastengel', 'Kue Klepon', 'Kue Lapis', 'Kue lumpur', 'Kue Putri Salju', 'Kue Risoles', 'Kue Serabi']
+kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
 
 st.title("Klasifikasi Kue dengan Streamlit")
 
@@ -53,11 +51,14 @@ if uploaded_file is not None:
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0) / 255.0
 
-    # Prediksi
-    pred = model.predict(img_array)
-    pred_kelas = np.argmax(pred, axis=1)[0]
-    kelas_terpilih = kelas[pred_kelas]
-    confidence = np.max(pred) * 100
+    # Prediksi jika model berhasil dimuat
+    if 'model' in locals():
+        pred = model.predict(img_array)
+        pred_kelas = np.argmax(pred, axis=1)[0]
+        kelas_terpilih = kelas[pred_kelas]
+        confidence = np.max(pred) * 100
 
-    st.write(f"Prediksi: **{kelas_terpilih}**")
-    st.write(f"Kepercayaan: {confidence:.2f}%")
+        st.write(f"Prediksi: **{kelas_terpilih}**")
+        st.write(f"Kepercayaan: {confidence:.2f}%")
+    else:
+        st.warning("Model belum berhasil dimuat. Harap pilih optimizer dan pastikan file model tersedia.")
