@@ -21,9 +21,9 @@ optimizer_choice = st.selectbox("Pilih optimizer model yang ingin digunakan", op
 
 # Tentukan path model berdasarkan optimizer yang dipilih
 model_paths = {
-    'Adam': 'model_adam.h5',
-    'SGD': 'model_sgd.h5',
-    'RMSprop': 'model_rmsprop.h5'
+    'Adam': 'model_Adam.h5',
+    'SGD': 'model_SGD.h5',
+    'RMSprop': 'model_RMSprop.h5'
 }
 
 model_path = model_paths[optimizer_choice]
