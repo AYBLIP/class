@@ -1,41 +1,36 @@
 import streamlit as st
-from tensorflow.keras.models import load_model
-import numpy as np
 from PIL import Image
-from tensorflow.keras.applications.efficientnet import preprocess_input
-from tensorflow.keras.utils import register_keras_serializable
+import numpy as np
+import tensorflow as tf
 
-# Daftarkan fungsi swish agar bisa dikenali saat load
-@register_keras_serializable()
-def swish(x):
-    return x * tf.nn.sigmoid(x)
+# Load model
+model = tf.keras.models.load_model('final_model_Adam.h5')
 
-@st.cache(allow_output_mutation=True)
-def load_model_keras():
-    return load_model('final_model_Adam.H5')  # ganti path sesuai model Anda
+# Daftar kelas kue
+labels = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
 
-model = load_model_keras()
+# Fungsi preprocessing gambar
+def preprocess_image(image):
+    size = (224, 224)  # Sesuaikan dengan input model
+    image = image.resize(size)
+    image_array = np.array(image) / 255.0  # normalisasi
+    image_array = np.expand_dims(image_array, axis=0)
+    return image_array
 
-kelas = ['Kue 1', 'Kue 2', 'Kue 3', 'Kue 4', 'Kue 5', 'Kue 6', 'Kue 7', 'Kue 8']
+st.title("Klasifikasi Kue - Deteksi 8 Kelas")
 
-st.title("Klasifikasi Gambar Kue dengan EfficientNetB0")
-st.write("Upload gambar kue dan prediksi kelasnya.")
-
-uploaded_file = st.file_uploader("Pilih gambar...", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Upload gambar kue", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    img = Image.open(uploaded_file)
-    st.image(img, caption='Gambar yang diunggah', use_column_width=True)
+    image = Image.open(uploaded_file)
+    st.image(image, caption='Gambar yang diupload', use_column_width=True)
 
-    img_resized = img.resize((224, 224))
-    img_array = np.array(img_resized)
-    img_array = preprocess_input(img_array)
-    img_array = np.expand_dims(img_array, axis=0)
+    if st.button('Prediksi'):
+        processed_image = preprocess_image(image)
+        prediction = model.predict(processed_image)
+        predicted_index = np.argmax(prediction)
+        predicted_label = labels[predicted_index]
+        confidence = np.max(prediction)
 
-    pred = model.predict(img_array)
-    pred_idx = np.argmax(pred[0])
-    pred_label = kelas[pred_idx]
-    pred_confidence = pred[0][pred_idx]
-
-    st.write(f"Prediksi: **{pred_label}**")
-    st.write(f"Kepercayaan: {pred_confidence*100:.2f}%")
+        st.write(f'Kelas Prediksi: **{predicted_label}**')
+        st.write(f'Probabilitas: {confidence:.2f}')
