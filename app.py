@@ -46,7 +46,7 @@ uploaded_file = st.file_uploader("Unggah gambar kue Anda", type=["jpg", "jpeg", 
 if uploaded_file is not None:
     # Baca gambar
     img = image.load_img(uploaded_file, target_size=(224, 224))
-    st.image(img, caption='Gambar yang diunggah', use_container_width=True)
+    st.image(img, use_container_width=True)
 
     # Pra-pemrosesan gambar
     img_array = image.img_to_array(img)
