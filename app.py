@@ -1,68 +1,72 @@
 import streamlit as st
 import tensorflow as tf
-from tensorflow.keras.applications import EfficientNetB0
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
-from tensorflow.keras.models import load_model
-import numpy as np
-import requests
-import tempfile
-import os
-from PIL import Image
+from tensorflow.keras import layers, models
 
-# URL model weights di GitHub (pastikan file publik)
-MODEL_WEIGHTS_URL = 'model_Adam.h5'
+# Judul aplikasi
+st.title("Model Deploy dengan Pilihan Optimizer (Adam, SGD, RMSprop)")
 
-@st.cache(allow_output_mutation=True)
-def load_model_from_github():
-    # Unduh bobot dari GitHub
-    response = requests.get(MODEL_WEIGHTS_URL)
-    temp_dir = tempfile.mkdtemp()
-    weights_path = os.path.join(temp_dir, 'model_weights.h5')
-    with open(weights_path, 'wb') as f:
-        f.write(response.content)
-    # Bangun model arsitektur
-    base_model = EfficientNetB0(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
-    x = GlobalAveragePooling2D()(base_model.output)
-    outputs = Dense(10, activation='softmax')(x)
-    model = tf.keras.models.Model(inputs=base_model.input, outputs=outputs)
-    # Muat bobot
-    model.load_weights(weights_path)
-    return model
+# Pilihan optimizer dari pengguna
+optimizer_choice = st.selectbox(
+    "Pilih optimizer:",
+    ("Adam", "SGD", "RMSprop")
+)
 
-st.title("Deploy EfficientNetB0 dengan Pilihan Optimizer dan Model dari GitHub")
+# Fungsi untuk mendapatkan optimizer sesuai pilihan
+def get_optimizer(name):
+    if name == "Adam":
+        return tf.keras.optimizers.Adam()
+    elif name == "SGD":
+        return tf.keras.optimizers.SGD()
+    elif name == "RMSprop":
+        return tf.keras.optimizers.RMSprop()
 
-# Pilihan optimizer
-optimizer_choice = st.selectbox('Pilih Optimizer', ['Adam', 'SGD', 'RMSprop'])
+# Tampilkan ketika tombol ditekan
+if st.button("Latih Model"):
+    st.write(f"Melatih model dengan optimizer: {optimizer_choice}")
 
-# Tombol untuk memuat model
-if st.button('Muat Model'):
-    model = load_model_from_github()
-    st.success("Model berhasil dimuat dari GitHub!")
+    # Load dataset MNIST
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
-    # Tampilkan ringkasan model
-    st.subheader("Ringkasan Model")
-    model_summary = []
-    model.summary(print_fn=lambda x: model_summary.append(x))
-    st.text("\n".join(model_summary))
+    # Normalisasi data
+    x_train = x_train.astype("float32") / 255.0
+    x_test = x_test.astype("float32") / 255.0
 
-    # Simulasi prediksi
-    st.subheader("Unggah Gambar untuk Prediksi")
-    uploaded_file = st.file_uploader("Pilih gambar (JPEG/PNG)", type=["jpg", "jpeg", "png"])
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file).convert('RGB')
-        image_resized = image.resize((224, 224))
-        st.image(image, caption='Gambar Input', use_column_width=True)
+    # Membuat model sederhana
+    model = models.Sequential([
+        layers.Flatten(input_shape=(28, 28)),
+        layers.Dense(128, activation='relu'),
+        layers.Dense(10, activation='softmax')
+    ])
 
-        img_array = np.array(image_resized) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)
+    # Compile model dengan optimizer yang dipilih
+    optimizer = get_optimizer(optimizer_choice)
+    model.compile(
+        optimizer=optimizer,
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy']
+    )
 
-        # Prediksi
-        predictions = model.predict(img_array)
-        class_labels = [f'Kelas {i}' for i in range(10)]
-        top_idx = np.argmax(predictions[0])
-        top_prob = predictions[0][top_idx]
-        st.write(f"Prediksi Terbaik: {class_labels[top_idx]} dengan probabilitas {top_prob:.2f}")
-        for i, label in enumerate(class_labels):
-            st.write(f"{label}: {predictions[0][i]:.2f}")
-else:
-    st.info("Tekan tombol 'Muat Model' untuk memulai.")
+    # Melatih model
+    history = model.fit(
+        x_train, y_train,
+        epochs=5,
+        batch_size=64,
+        validation_split=0.2,
+        verbose=1
+    )
+
+    # Evaluasi model
+    loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
+    st.write(f"Akurasi pada data test: {accuracy*100:.2f}%")
+    
+    # Optional: tampilkan grafik training
+    import matplotlib.pyplot as plt
+
+    # Plot akurasi
+    fig, ax = plt.subplots()
+    ax.plot(history.history['accuracy'], label='Training Accuracy')
+    ax.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('Akurasi')
+    ax.legend()
+    st.pyplot(fig)
