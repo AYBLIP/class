@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 # Load model
-model = tf.keras.models.load_model('best_model_Adam.keras')
+model = tf.keras.models.load_model('model_klasifikasi_kue.h5')
 
 # Daftar kelas kue
 labels = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
