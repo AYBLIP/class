@@ -20,7 +20,7 @@ optimizer_options = ['Adam', 'SGD', 'RMSprop']
 optimizer_choice = st.selectbox("Pilih optimizer model yang ingin digunakan", optimizer_options)
 
 # Tentukan path model secara dinamis
-model_path = f'model_{optimizer_choice()}.h5'
+model_path = f'model_{optimizer_choice}.h5'
 
 # Muat model dengan penanganan error
 try:
