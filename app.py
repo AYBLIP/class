@@ -1,28 +1,32 @@
 import streamlit as st
-import pickle
+import tensorflow as tf
+from tensorflow.keras.preprocessing import image
 import numpy as np
 
-# Muat model yang sudah dilatih
-model = pickle.load(open('model.pkl', 'rb'))
+# Load model
+model = tf.keras.models.load_model('model_klasifikasi_kue.h5')
 
-# Judul aplikasi
-st.title("Klasifikasi 8 Kelas")
+# Daftar kelas
+kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
 
-# Input fitur (sesuaikan dengan fitur model Anda)
-# Misalnya, jika model menerima 4 fitur numerik
-input_features = []
+st.title("Klasifikasi Kue dengan Streamlit")
 
-# Contoh: input fitur numerik
-for i in range(1, 5):
-    feature = st.number_input(f'Fitur {i}', min_value=0.0, max_value=100.0, step=0.1)
-    input_features.append(feature)
+uploaded_file = st.file_uploader("Unggah gambar kue Anda", type=["jpg", "jpeg", "png"])
 
-# Tombol untuk prediksi
-if st.button('Prediksi'):
-    # Mengubah input menjadi numpy array dan bentuk yang sesuai
-    input_array = np.array([input_features])
+if uploaded_file is not None:
+    # Baca gambar
+    img = image.load_img(uploaded_file, target_size=(224, 224))
+    st.image(img, caption='Gambar yang diunggah', use_column_width=True)
+
+    # Pra-pemrosesan gambar
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0) / 255.0
+
     # Prediksi
-    prediction = model.predict(input_array)
-    # Jika output berupa label numerik, bisa di-mapping ke nama kelas
-    kelas = prediction[0]
-    st.write(f'Kelas Prediksi: {kelas}')
+    pred = model.predict(img_array)
+    pred_kelas = np.argmax(pred, axis=1)[0]
+    kelas_terpilih = kelas[pred_kelas]
+    confidence = np.max(pred) * 100
+
+    st.write(f"Prediksi: **{kelas_terpilih}**")
+    st.write(f"Kepercayaan: {confidence:.2f}%")
