@@ -4,13 +4,25 @@ from tensorflow.keras.utils import register_keras_serializable
 from tensorflow.keras.preprocessing import image
 import numpy as np
 
-# Definisikan dan daftarkan fungsi aktivasi custom
+# Definisikan dan daftarkan fungsi aktivasi dan lapisan kustom
 @register_keras_serializable()
 def swish(x):
     return x * tf.nn.sigmoid(x)
 
+@register_keras_serializable()
+class FixedDropout(tf.keras.layers.Dropout):
+    def call(self, inputs, training=None):
+        # Implementasi khusus jika diperlukan
+        return super().call(inputs, training=True)
+
 # Muat model dengan custom_objects
-model = tf.keras.models.load_model('model_Adam.h5', custom_objects={'swish': swish})
+model = tf.keras.models.load_model(
+    'path_to_your_model.h5',
+    custom_objects={
+        'FixedDropout': FixedDropout,
+        'swish': swish
+    }
+)
 
 # Daftar kelas
 kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
