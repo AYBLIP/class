@@ -17,7 +17,7 @@ class FixedDropout(tf.keras.layers.Dropout):
 
 # Muat model dengan custom_objects
 model = tf.keras.models.load_model(
-    'Model_Adam.h5',
+    'model_Adam.h5',
     custom_objects={
         'FixedDropout': FixedDropout,
         'swish': swish
