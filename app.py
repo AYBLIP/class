@@ -7,7 +7,7 @@ import tensorflow as tf
 model = tf.keras.models.load_model('model_klasifikasi_kue.h5')
 
 # Daftar kelas kue
-labels = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
+labels = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Lumpur', 'Kue F', 'Kue G', 'Kue H']
 
 # Fungsi preprocessing gambar
 def preprocess_image(image):
