@@ -12,7 +12,7 @@ def swish(x):
 
 @st.cache(allow_output_mutation=True)
 def load_model_keras():
-    return load_model('final_model_Adam.h5')  # ganti path sesuai model Anda
+    return load_model('final_model_Adam.H5')  # ganti path sesuai model Anda
 
 model = load_model_keras()
 
