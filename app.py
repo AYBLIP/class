@@ -1,40 +1,66 @@
+import streamlit as st
 import tensorflow as tf
-from tensorflow.keras.models import load_model
-import numpy as np
+from tensorflow.keras.utils import register_keras_serializable
 from tensorflow.keras.preprocessing import image
+import numpy as np
 
-# Path ke model yang sudah dilatih
-model_paths = [
-    'model_Adam.h5',
-    'model_SGD.h5',
-    'model_RMSprop.h5'
-]
+# Definisikan dan daftarkan fungsi aktivasi dan lapisan kustom jika diperlukan
+@register_keras_serializable()
+def swish(x):
+    return x * tf.nn.sigmoid(x)
 
-# Muat semua model
-models = [load_model(path) for path in model_paths]
+@register_keras_serializable()
+class FixedDropout(tf.keras.layers.Dropout):
+    def call(self, inputs, training=None):
+        return super().call(inputs, training=True)
 
-# Fungsi prediksi menggunakan ketiga model
-def predict_with_models(img_path):
-    # Load dan preprocess gambar
-    img = image.load_img(img_path, target_size=(img_size, img_size))
-    x = image.img_to_array(img)
-    x = x / 255.0
-    x = np.expand_dims(x, axis=0)  # buat batch dimension
+# Fungsi untuk membangun dan melatih model (contoh)
+def build_and_train_model(optimizer_name):
+    # Buat model sederhana sebagai contoh
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(224, 224, 3)),
+        FixedDropout(0.5),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(8, activation='softmax')
+    ])
 
-    # Prediksi dari tiap model
-    predictions = []
-    for i, model in enumerate(models):
-        pred = model.predict(x)
-        predictions.append(pred)
-        print(f"Prediksi dari Model {i+1} ({model_paths[i]}): {pred}")
+    # Pilih optimizer berdasarkan input pengguna
+    if optimizer_name == 'adam':
+        optimizer = tf.keras.optimizers.Adam()
+    elif optimizer_name == 'sgd':
+        optimizer = tf.keras.optimizers.SGD()
+    elif optimizer_name == 'rmsprop':
+        optimizer = tf.keras.optimizers.RMSprop()
+    else:
+        optimizer = tf.keras.optimizers.Adam()  # default
 
-    # Jika ingin menggabungkan prediksi, bisa dilakukan rata-rata
-    avg_prediction = np.mean(predictions, axis=0)
-    print(f"\nPrediksi gabungan (rata-rata): {avg_prediction}")
+    # Kompilasi model
+    model.compile(optimizer=optimizer,
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+    # Data dummy untuk pelatihan (sebagai contoh)
+    # Ganti dengan data nyata jika diperlukan
+    x_train = np.random.rand(100, 224, 224, 3)
+    y_train = np.random.randint(0, 8, 100)
 
-    # Tentukan kelas prediksi tertinggi
-    predicted_class = np.argmax(avg_prediction)
-    print(f"Prediksi kelas: {predicted_class}")
+    # Latih model (sebagai contoh)
+    model.fit(x_train, y_train, epochs=1, verbose=0)
+    return model
 
-# Contoh penggunaan
-predict_with_models('path/ke/gambar_anda.jpg')
+# Streamlit UI
+st.title("Pelatihan Model dengan Pilihan Optimizer")
+
+# Pilihan optimizer
+optimizer_option = st.selectbox(
+    "Pilih optimizer yang ingin digunakan:",
+    ("adam", "sgd", "rmsprop")
+)
+
+# Tombol untuk melatih
+if st.button("Latih Model"):
+    with st.spinner(f"Melatih dengan optimizer {optimizer_option}..."):
+        model = build_and_train_model(optimizer_option)
+    st.success("Model telah dilatih!")
+
+# Jika ingin memuat model dan melakukan prediksi
+# (kode sebelumnya tetap sama, gunakan model yang sudah dilatih)
