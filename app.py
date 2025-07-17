@@ -48,7 +48,7 @@ if uploaded_files:
         # Baca gambar
         img = image.load_img(uploaded_file, target_size=(224, 224))
         # Tampilkan gambar kecil (misalnya lebar 150px)
-        st.image(img, caption=uploaded_file.name, width=50)
+        st.image(img, caption=uploaded_file.name, width=10)
 
         # Pra-pemrosesan gambar
         img_array = image.img_to_array(img)
