@@ -29,9 +29,11 @@ optimizer_choice = st.selectbox(
     ("Adam", "SGD", "RMSprop")
 )
 
-# Memuat model sesuai pilihan optimizer
+# Inisialisasi model dengan None
 model = None
 model_path = f'model_{optimizer_choice}.h5'
+
+# Coba muat model
 try:
     model = tf.keras.models.load_model(model_path)
     st.success(f"Model {optimizer_choice} berhasil dimuat.")
@@ -45,11 +47,14 @@ if uploaded_file is not None:
     st.image(image, caption='Gambar yang diupload', use_column_width=True)
 
     if st.button('Prediksi'):
-        processed_image = preprocess_image(image)
-        prediction = model.predict(processed_image)
-        predicted_index = np.argmax(prediction)
-        predicted_label = labels[predicted_index]
-        confidence = np.max(prediction)
+        if model is not None:
+            processed_image = preprocess_image(image)
+            prediction = model.predict(processed_image)
+            predicted_index = np.argmax(prediction)
+            predicted_label = labels[predicted_index]
+            confidence = np.max(prediction)
 
-        st.write(f'Kelas Prediksi: **{predicted_label}**')
-        st.write(f'Probabilitas: {confidence:.2f}')
+            st.write(f'Kelas Prediksi: **{predicted_label}**')
+            st.write(f'Probabilitas: {confidence:.2f}')
+        else:
+            st.error("Model belum berhasil dimuat. Periksa file model.")
