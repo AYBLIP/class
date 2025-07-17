@@ -3,42 +3,34 @@ from PIL import Image
 import numpy as np
 import tensorflow as tf
 
-# Daftar kelas kue
+# Daftar kelas
 labels = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Lumpur', 'Kue F', 'Kue G', 'Kue H']
 
-# Fungsi preprocessing gambar
 def preprocess_image(image):
     size = (224, 224)
     image = image.resize(size)
-
-    # Pastikan gambar dalam mode RGB
-    if image.mode == 'RGBA':
+    if image.mode != 'RGB':
         image = image.convert('RGB')
-    elif image.mode != 'RGB':
-        image = image.convert('RGB')
-
-    image_array = np.array(image) / 255.0  # normalisasi
-    image_array = np.expand_dims(image_array, axis=0)
-    return image_array
+    image_array = np.array(image) / 255.0
+    return np.expand_dims(image_array, axis=0)
 
 st.title("Klasifikasi Kue - Deteksi 8 Kelas")
 
-# Pilihan optimizer
 optimizer_choice = st.selectbox(
     "Pilih optimizer yang digunakan saat pelatihan model:",
     ("Adam", "SGD", "RMSprop")
 )
 
-# Inisialisasi model dengan None
+# Inisialisasi model sebagai None
 model = None
-model_path = f'model_{optimizer_choice}.h5'
 
-# Coba muat model
+# Coba muat model sesuai pilihan optimizer
+model_path = f'model_{optimizer_choice}.h5'
 try:
     model = tf.keras.models.load_model(model_path)
     st.success(f"Model {optimizer_choice} berhasil dimuat.")
-except:
-    st.error(f"Gagal memuat model dari {model_path}. Pastikan file model tersedia.")
+except Exception as e:
+    st.error(f"Gagal memuat model dari {model_path}. Pesan: {str(e)}")
 
 uploaded_file = st.file_uploader("Upload gambar kue", type=["jpg", "jpeg", "png"])
 
@@ -57,4 +49,4 @@ if uploaded_file is not None:
             st.write(f'Kelas Prediksi: **{predicted_label}**')
             st.write(f'Probabilitas: {confidence:.2f}')
         else:
-            st.error("Model belum berhasil dimuat. Periksa file model.")
+            st.error("Model belum berhasil dimuat. Periksa file model dan coba lagi.")
