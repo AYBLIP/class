@@ -6,7 +6,7 @@ from tensorflow.keras.models import load_model
 
 # Muat model yang sudah disimpan
 model_path = 'final_model_Adam.h5'  # Ganti sesuai file model Anda
-model = load_model(model_path)
+model = tf.keras.models.load_model(model_path, compile=False)
 
 # Daftar kelas yang digunakan selama pelatihan
 # Pastikan sesuai dengan class_indices dari data generator Anda
