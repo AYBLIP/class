@@ -1,50 +1,40 @@
-import streamlit as st
 import tensorflow as tf
-from tensorflow.keras.utils import register_keras_serializable
-from tensorflow.keras.preprocessing import image
+from tensorflow.keras.models import load_model
 import numpy as np
+from tensorflow.keras.preprocessing import image
 
-# Definisikan dan daftarkan fungsi aktivasi dan lapisan kustom
-@register_keras_serializable()
-def swish(x):
-    return x * tf.nn.sigmoid(x)
-
-@register_keras_serializable()
-class FixedDropout(tf.keras.layers.Dropout):
-    def call(self, inputs, training=None):
-        # Implementasi khusus jika diperlukan
-        return super().call(inputs, training=True)
-
-# Muat model dengan custom_objects
-model = tf.keras.models.load_model(
+# Path ke model yang sudah dilatih
+model_paths = [
     'model_Adam.h5',
-    custom_objects={
-        'FixedDropout': FixedDropout,
-        'swish': swish
-    }
-)
+    'model_SGD.h5',
+    'model_RMSprop.h5'
+]
 
-# Daftar kelas
-kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
+# Muat semua model
+models = [load_model(path) for path in model_paths]
 
-st.title("Klasifikasi Kue dengan Streamlit")
+# Fungsi prediksi menggunakan ketiga model
+def predict_with_models(img_path):
+    # Load dan preprocess gambar
+    img = image.load_img(img_path, target_size=(img_size, img_size))
+    x = image.img_to_array(img)
+    x = x / 255.0
+    x = np.expand_dims(x, axis=0)  # buat batch dimension
 
-uploaded_file = st.file_uploader("Unggah gambar kue Anda", type=["jpg", "jpeg", "png"])
+    # Prediksi dari tiap model
+    predictions = []
+    for i, model in enumerate(models):
+        pred = model.predict(x)
+        predictions.append(pred)
+        print(f"Prediksi dari Model {i+1} ({model_paths[i]}): {pred}")
 
-if uploaded_file is not None:
-    # Baca gambar
-    img = image.load_img(uploaded_file, target_size=(224, 224))
-    st.image(img, caption='Gambar yang diunggah', use_column_width=True)
+    # Jika ingin menggabungkan prediksi, bisa dilakukan rata-rata
+    avg_prediction = np.mean(predictions, axis=0)
+    print(f"\nPrediksi gabungan (rata-rata): {avg_prediction}")
 
-    # Pra-pemrosesan gambar
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0
+    # Tentukan kelas prediksi tertinggi
+    predicted_class = np.argmax(avg_prediction)
+    print(f"Prediksi kelas: {predicted_class}")
 
-    # Prediksi
-    pred = model.predict(img_array)
-    pred_kelas = np.argmax(pred, axis=1)[0]
-    kelas_terpilih = kelas[pred_kelas]
-    confidence = np.max(pred) * 100
-
-    st.write(f"Prediksi: **{kelas_terpilih}**")
-    st.write(f"Kepercayaan: {confidence:.2f}%")
+# Contoh penggunaan
+predict_with_models('path/ke/gambar_anda.jpg')
