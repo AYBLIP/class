@@ -3,9 +3,6 @@ from PIL import Image
 import numpy as np
 import tensorflow as tf
 
-# Load model
-model = tf.keras.models.load_model('model_Adam.h5')
-
 # Daftar kelas kue
 labels = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Lumpur', 'Kue F', 'Kue G', 'Kue H']
 
@@ -25,6 +22,20 @@ def preprocess_image(image):
     return image_array
 
 st.title("Klasifikasi Kue - Deteksi 8 Kelas")
+
+# Pilihan optimizer
+optimizer_choice = st.selectbox(
+    "Pilih optimizer yang digunakan saat pelatihan model:",
+    ("Adam", "SGD", "RMSprop")
+)
+
+# Memuat model sesuai pilihan optimizer
+model_path = f'model_{optimizer_choice}.h5'
+try:
+    model = tf.keras.models.load_model(model_path)
+    st.success(f"Model {optimizer_choice} berhasil dimuat.")
+except:
+    st.error(f"Gagal memuat model dari {model_path}. Pastikan file model tersedia.")
 
 uploaded_file = st.file_uploader("Upload gambar kue", type=["jpg", "jpeg", "png"])
 
