@@ -1,6 +1,8 @@
-opencv-python-headless
 streamlit
-keras
 tensorflow
+keras
+efficientnet
+scikit-learn
 matplotlib
+seaborn
 numpy
