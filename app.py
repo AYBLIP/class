@@ -1,42 +1,45 @@
 import streamlit as st
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 import numpy as np
+from PIL import Image
 
-st.title("Deploy Model dengan Pilihan Optimizer")
+# Muat model yang sudah dilatih
+model = tf.keras.models.load_model('model_Adam.h5')
 
-# Pilihan optimizer
-optimizer_choice = st.selectbox(
-    "Pilih optimizer:",
-    ("Adam", "RMSProp", "SGD")
-)
+# Daftar label kelas
+kelas = [
+    'Kue Coklat',
+    'Kue Keju',
+    'Kue Stroberi',
+    'Kue Lapis',
+    'Kue Brownies',
+    'Kue Nastar',
+    'Kue Putu',
+    'Kue Apem'
+]
 
-# Load model sesuai pilihan optimizer
-@st.cache(allow_output_mutation=True)
-def load_selected_model(opt):
-    if opt == "Adam":
-        model_path = "model_Adam.h5"
-    elif opt == "RMSProp":
-        model_path = "model_RMSProp.h5"
-    elif opt == "SGD":
-        model_path = "model_SGD.h5"
-    else:
-        model_path = None
+st.title("Aplikasi Klasifikasi Citra Digital Kue")
+st.write("Unggah gambar kue untuk diklasifikasikan ke dalam salah satu dari 8 kelas.")
+
+# Upload gambar
+uploaded_file = st.file_uploader("Pilih gambar", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+    # Baca gambar
+    image = Image.open(uploaded_file)
+    st.image(image, caption='Gambar yang diunggah', use_column_width=True)
     
-    if model_path:
-        return load_model(model_path)
-    else:
-        return None
-
-model = load_selected_model(optimizer_choice)
-
-# Input data dari user (sesuaikan dengan bentuk input model)
-st.write("Masukkan fitur untuk prediksi:")
-
-# Contoh input satu fitur
-input_feature = st.number_input("Masukkan fitur input:", value=0.0)
-
-if st.button("Prediksi"):
-    # Pastikan input berbentuk array 2D
-    input_array = np.array([[input_feature]])
-    prediction = model.predict(input_array)
-    st.write(f"Hasil prediksi: {prediction[0][0]:.4f}")
+    # Preprocessing gambar sesuai model
+    # Misalkan model membutuhkan input 128x128
+    image_resized = image.resize((128, 128))
+    img_array = np.array(image_resized) / 255.0  # normalisasi
+    img_array = np.expand_dims(img_array, axis=0)  # bentuk (1, 128, 128, 3)
+    
+    # Prediksi
+    pred = model.predict(img_array)
+    pred_kelas = np.argmax(pred, axis=1)[0]
+    confidence = pred[0][pred_kelas]
+    
+    # Tampilkan hasil
+    st.write(f"Prediksi: **{kelas[pred_kelas]}**")
+    st.write(f"Kepercayaan: {confidence*100:.2f}%")
