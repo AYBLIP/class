@@ -1,10 +1,16 @@
 import streamlit as st
 import tensorflow as tf
+from tensorflow.keras.utils import register_keras_serializable
 from tensorflow.keras.preprocessing import image
 import numpy as np
 
-# Load model
-model = tf.keras.models.load_model('model_Adam.h5')
+# Definisikan dan daftarkan fungsi aktivasi custom
+@register_keras_serializable()
+def swish(x):
+    return x * tf.nn.sigmoid(x)
+
+# Muat model dengan custom_objects
+model = tf.keras.models.load_model('model_Adam.h5', custom_objects={'swish': swish})
 
 # Daftar kelas
 kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
