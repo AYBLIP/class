@@ -2,31 +2,41 @@ import streamlit as st
 from tensorflow.keras.models import load_model
 import numpy as np
 
-st.title("Deploy Model dengan Pilihan Optimizer dan File H5")
-
-# Upload file model .h5
-model_file = st.file_uploader("Upload Model .h5", type=["h5"])
+st.title("Deploy Model dengan Pilihan Optimizer")
 
 # Pilihan optimizer
-optimizer = st.selectbox(
+optimizer_choice = st.selectbox(
     "Pilih optimizer:",
-    ("Adam", "SGD", "RMSProp")
+    ("Adam", "RMSProp", "SGD")
 )
 
-if model_file is not None:
-    # Load model
-    model = load_model(model_file)
-    st.success("Model berhasil dimuat!")
+# Load model sesuai pilihan optimizer
+@st.cache(allow_output_mutation=True)
+def load_selected_model(opt):
+    if opt == "Adam":
+        model_path = "model_Adam.h5"
+    elif opt == "RMSProp":
+        model_path = "model_RMSProp.h5"
+    elif opt == "SGD":
+        model_path = "model_SGD.h5"
+    else:
+        model_path = None
+    
+    if model_path:
+        return load_model(model_path)
+    else:
+        return None
 
-    # Input fitur untuk prediksi
-    input_feature = st.number_input("Masukkan nilai fitur untuk prediksi", value=0.0)
+model = load_selected_model(optimizer_choice)
 
-    # Lakukan prediksi
-    if st.button("Prediksi"):
-        # Pastikan input dalam bentuk array
-        input_array = np.array([[input_feature]])
-        # Jika model membutuhkan proses tertentu sebelum prediksi, lakukan di sini
-        pred = model.predict(input_array)
-        st.write(f"Hasil prediksi: {pred[0][0]}")
-else:
-    st.info("Silakan upload file model .h5 terlebih dahulu.")
+# Input data dari user (sesuaikan dengan bentuk input model)
+st.write("Masukkan fitur untuk prediksi:")
+
+# Contoh input satu fitur
+input_feature = st.number_input("Masukkan fitur input:", value=0.0)
+
+if st.button("Prediksi"):
+    # Pastikan input berbentuk array 2D
+    input_array = np.array([[input_feature]])
+    prediction = model.predict(input_array)
+    st.write(f"Hasil prediksi: {prediction[0][0]:.4f}")
