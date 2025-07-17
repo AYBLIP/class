@@ -4,7 +4,7 @@ from tensorflow.keras.preprocessing import image
 import numpy as np
 
 # Load model
-model = tf.keras.models.load_model('model_klasifikasi_kue.h5')
+model = tf.keras.models.load_model('model_Adam.h5')
 
 # Daftar kelas
 kelas = ['Kue A', 'Kue B', 'Kue C', 'Kue D', 'Kue E', 'Kue F', 'Kue G', 'Kue H']
