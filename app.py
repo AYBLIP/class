@@ -9,9 +9,7 @@ import os
 @st.cache(allow_output_mutation=True)
 def load_models():
     models = {
-        'Adam': load_model('models/model_Adam.h5'),
-        'SGD': load_model('models/model_SGD.h5'),
-        'RMSprop': load_model('models/model_RMSprop.h5')
+        'Adam': load_model('model_klasifikasi_kue.h5'),
     }
     return models
 
