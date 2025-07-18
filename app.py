@@ -47,7 +47,7 @@ if uploaded_files:
     for uploaded_file in uploaded_files:
         # Baca gambar
         img = image.load_img(uploaded_file, target_size=(224, 224))
-        st.image(img, caption=uploaded_file.name, use_container_width=True)
+        st.image(img, caption=uploaded_file.name, use_container_width=1)
 
         # Pra-pemrosesan gambar
         img_array = image.img_to_array(img)
