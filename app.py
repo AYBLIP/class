@@ -22,6 +22,7 @@ optimizer_choice = st.selectbox("Optimizer", optimizer_options)
 
 # Path model
 model_path = f'model_{optimizer_choice}.h5'
+
 # Muat model
 try:
     model = tf.keras.models.load_model(
